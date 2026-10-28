@@ -1,0 +1,38 @@
+name: Publish build output
+
+# Copies the .rbf and Quartus reports of a finished "Build core" run to the
+# build-output branch, so they can be fetched with plain git.
+on:
+  push:
+    branches: [ "fix/**" ]
+    paths: [ ".github/workflows/publish.yml" ]
+  workflow_dispatch:
+    inputs:
+      run_id:
+        description: "Build core run id"
+        required: true
+
+permissions:
+  contents: write
+  actions: read
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          run-id: ${{ inputs.run_id || '40745215489' }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path: out
+
+      - name: Push to build-output branch
+        run: |
+          cd out
+          ls -lR
+          git init -q
+          git checkout -q -b build-output
+          git add -A
+          git -c user.name="github-actions" -c user.email="github-actions@users.noreply.github.com" \
+            commit -q -m "Build output of run ${{ inputs.run_id || '40745215489' }}"
+          git push -f "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}" build-output

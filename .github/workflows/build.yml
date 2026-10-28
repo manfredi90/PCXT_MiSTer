@@ -3,6 +3,7 @@ name: Build core
 on:
   push:
     branches: [ "fix/**" ]
+    paths-ignore: [ ".github/workflows/**" ]
   workflow_dispatch:
 
 jobs:
